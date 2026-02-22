@@ -1,0 +1,38 @@
+// @ts-check
+/** @typedef {import('../../types').Command} Command */
+
+const { ApplicationCommandOptionType, PermissionFlagsBits } = require('discord.js');
+
+/** @type {Command} */
+module.exports = {
+    name: 'ban',
+    description: 'bans a member from the server.',
+    //devOnly: Boolean,
+    //testOnly: Boolean,
+    options: [
+        {
+            name: 'target-user',
+            description: 'The user to ban.',
+            required: true,
+            type: ApplicationCommandOptionType.Mentionable,
+        },
+        {
+            name: 'reason',
+            description: 'The reason for banning.',
+            required: false, //Can be removed altogether
+            type: ApplicationCommandOptionType.String,
+        },
+    ],
+    permissionsRequired: [PermissionFlagsBits.Administrator],
+    botPermissions: [PermissionFlagsBits.Administrator],
+
+    /**
+   * @param {import('discord.js').Client} client
+   * @param {import('discord.js').ChatInputCommandInteraction} interaction 
+   */
+    callback: (client, interaction) => {
+        interaction.reply(`Banned..`);
+
+        
+    }
+}
