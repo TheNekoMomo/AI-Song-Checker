@@ -44,6 +44,7 @@ module.exports = {
 
         const embed = new EmbedBuilder()
         .setTitle(`Prediction: ${result.prediction}`)
+        .setURL(spotifyInfo.url)
         .setDescription(`Song: ${spotifyInfo.title} by ${spotifyInfo.artists.join(', ')}`)
         .setThumbnail(spotifyInfo.image)
         .setColor('Random')
