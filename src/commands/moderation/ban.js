@@ -6,7 +6,7 @@ const { ApplicationCommandOptionType, PermissionFlagsBits } = require('discord.j
 /** @type {Command} */
 module.exports = {
     name: 'ban',
-    description: 'bans a member from the server.',
+    description: '100% bans a member from the server.',
     //devOnly: Boolean,
     //testOnly: Boolean,
     options: [
@@ -30,9 +30,12 @@ module.exports = {
    * @param {import('discord.js').Client} client
    * @param {import('discord.js').ChatInputCommandInteraction} interaction 
    */
-    callback: (client, interaction) => {
-        interaction.reply(`Banned..`);
+    callback: async (client, interaction) => {
+        const targetUserID = interaction.options.get('target-user');
+        const reason = interaction.options.get('reason')?.value || 'No reason provided';
 
-        
+        await interaction.deferReply();
+
+        interaction.editReply(`Banned.. ${targetUserID?.user?.username} for ${reason}`);
     }
 }

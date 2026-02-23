@@ -1,6 +1,6 @@
 // @ts-check
 
-const { devs, testServer } = require('../../../config.json');
+const { devs, testServer, guildWhitelistIDs } = require('../../../config.json');
 const getLocalCommands = require('../../utils/getLocalCommands');
 
 /** @typedef {import('../../types').EventFileHandler} EventFileHandler */
@@ -22,6 +22,12 @@ async function  handleCommands (client, interaction)
         const commandObject = localCommands.find((cmd) => cmd.name === interaction.commandName);
 
         if (!commandObject) return;
+
+        if (!guildWhitelistIDs.includes(interaction.guildId))
+        {
+            interaction.reply({content: 'This server is not on the whitelist to use any command.', ephemeral: true});
+            return;
+        }
 
         if (commandObject.devOnly)
         {
