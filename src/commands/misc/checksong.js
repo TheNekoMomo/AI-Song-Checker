@@ -37,15 +37,15 @@ module.exports = {
         const trackId = spotifyResult.trackId || "";
         const shlabsResult = await shlabsAPICall(trackId);
 
+        const spotifyInfo = await getSpotifyTrackInfo(trackId);
+
         const {result,response_time, usage} = shlabsResult;
-
         const {human, processed_ai, pure_ai} = result.spectral_probabilities;
-
-        console.log(shlabsResult);
 
         const embed = new EmbedBuilder()
         .setTitle(`Prediction: ${result.prediction}`)
-        .setDescription(`Track ID: ${spotifyResult.trackId}`)
+        .setDescription(`Song: ${spotifyInfo.title} by ${spotifyInfo.artists.join(', ')}`)
+        .setThumbnail(spotifyInfo.image)
         .setColor('Random')
         .setFields(
             {name: "Human", value: human.toFixed(2), inline: true}, 
@@ -103,4 +103,80 @@ async function  shlabsAPICall(trackId){
     )
 
     return result.data;
+}
+
+/**
+ * Gets an app access token from Spotify using Client Credentials flow.
+ * @returns {Promise<string>}
+ */
+async function getSpotifyAccessToken() {
+  const clientId = process.env.SPOTIFY_CLIENT_ID;
+  const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
+
+  const basic = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
+
+  const res = await fetch("https://accounts.spotify.com/api/token", {
+    method: "POST",
+    headers: {
+      Authorization: `Basic ${basic}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: "grant_type=client_credentials",
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Spotify token error: ${res.status} ${text}`);
+  }
+
+  const data = await res.json();
+  return data.access_token;
+}
+
+/**
+ * @typedef {Object} SpotifyTrackResponse
+ * @property {string} id
+ * @property {string} name
+ * @property {{ name: string }[]} artists
+ * @property {{
+ *   name: string,
+ *   images: { url: string }[]
+ * }} album
+ * @property {{ spotify?: string }} [external_urls]
+ */
+/**
+ * @param {string} trackId
+ * @returns {Promise<{
+ *   id: string,
+ *   title: string,
+ *   artists: string[],
+ *   url: string|null,
+ *   image: string|null,
+ *   album: string|null
+ * }>}
+ */
+async function getSpotifyTrackInfo(trackId) {
+  const token = await getSpotifyAccessToken();
+
+  const res = await fetch(`https://api.spotify.com/v1/tracks/${trackId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Spotify track error: ${res.status} ${text}`);
+  }
+/** @type {SpotifyTrackResponse} */
+  const t = await res.json();
+
+  return {
+    id: t.id,
+    title: t.name,
+    artists: t.artists.map(a => a.name),
+    url: t.external_urls?.spotify || null,
+    image: t.album?.images?.[0]?.url || null,
+    album: t.album?.name || null,
+  };
 }
