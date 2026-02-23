@@ -35,10 +35,9 @@ module.exports = {
             return interaction.editReply("Invalid Spotify track URL.");
         }
 
-        const trackId = spotifyResult.trackId || "";
-        const shlabsResult = await shlabsAPICall(trackId);
+        const shlabsResult = await shlabsAPICall(/** @type {string} */(spotifyResult.trackId));
 
-        const spotifyInfo = await getSpotifyTrackInfo(trackId);
+        const spotifyInfo = await getSpotifyTrackInfo(/** @type {string} */(spotifyResult.trackId));
 
         const { hex } = await getAverageColor(/** @type {string} */(spotifyInfo.image));
         const embedColor = parseInt(hex.replace("#", ""), 16);
