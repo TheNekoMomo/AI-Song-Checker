@@ -2,6 +2,7 @@
 /** @typedef {import('../../types').Command} Command */
 
 const { ApplicationCommandOptionType, PermissionFlagsBits, EmbedBuilder } = require('discord.js');
+const { getAverageColor } = require("fast-average-color-node");
 const axios = require('axios');
 require('dotenv').config();
 
@@ -39,6 +40,9 @@ module.exports = {
 
         const spotifyInfo = await getSpotifyTrackInfo(trackId);
 
+        const { hex } = await getAverageColor(/** @type {string} */(spotifyInfo.image));
+        const embedColor = parseInt(hex.replace("#", ""), 16);
+
         const {result,response_time, usage} = shlabsResult;
         const {human, processed_ai, pure_ai} = result.spectral_probabilities;
 
@@ -47,7 +51,7 @@ module.exports = {
         .setURL(spotifyInfo.url)
         .setDescription(`Song: ${spotifyInfo.title} by ${spotifyInfo.artists.join(', ')}`)
         .setThumbnail(spotifyInfo.image)
-        .setColor('Random')
+        .setColor(embedColor)
         .setFields(
             {name: "Human", value: human.toFixed(2), inline: true}, 
             {name: "Processed AI", value: processed_ai.toFixed(2), inline: true}, 
