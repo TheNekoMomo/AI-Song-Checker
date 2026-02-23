@@ -8,7 +8,7 @@ require('dotenv').config();
 /** @type {Command} */
 module.exports = {
     name: 'check-song',
-    description: 'checks a song against shlabs.music',
+    description: 'checks a song against shlabs.music for AI-generated content',
     options: [
         {
             name: 'spotify-url',
