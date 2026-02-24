@@ -1,5 +1,9 @@
 // @ts-check
 /** @typedef {import('../../types').Command} Command */
+/** @typedef {import('../../types').SpotifyTrackParseResult} SpotifyTrackParseResult */
+/** @typedef {import('../../types').SpotifyTrackInfo} SpotifyTrackInfo */
+/** @typedef {import('../../types').SpotifyTrackResponse} SpotifyTrackResponse */
+
 
 const { ApplicationCommandOptionType, PermissionFlagsBits, EmbedBuilder } = require('discord.js');
 const { getAverageColor } = require("fast-average-color-node");
@@ -30,20 +34,27 @@ module.exports = {
 
         const spotifyResult = parseSpotifyTrackURL(songURL);
 
-        if(!spotifyResult.valid)
-        {
-            return interaction.editReply("Invalid Spotify track URL.");
+        if (!spotifyResult.valid) {
+          return interaction.editReply("Invalid Spotify track URL.");
         }
 
-        const shlabsResult = await shlabsAPICall(/** @type {string} */(spotifyResult.trackId));
+        // trackId is now definitely a string
+        const trackId = spotifyResult.trackId;
 
-        const spotifyInfo = await getSpotifyTrackInfo(/** @type {string} */(spotifyResult.trackId));
+        const shlabsResult = await shlabsAPICall(trackId);
+        const spotifyInfo = await getSpotifyTrackInfo(trackId);
 
-        const { hex } = await getAverageColor(/** @type {string} */(spotifyInfo.image));
-        const embedColor = parseInt(hex.replace("#", ""), 16);
+        let embedColor = 0x1DB954; // fallback (Spotify green)
+        if (spotifyInfo.image) {
+          const { hex } = await getAverageColor(spotifyInfo.image);
+          embedColor = parseInt(hex.replace("#", ""), 16);
+        }
 
         const {result,response_time, usage} = shlabsResult;
         const {human, processed_ai, pure_ai} = result.spectral_probabilities;
+
+        console.log(`Daily usage left for SH Labs API: ${usage.daily_remaining} out of 500`);
+        console.log(`Monthly usage left for SH Labs API: ${usage.monthly_remaining} out of 10000`);
 
         const embed = new EmbedBuilder()
         .setTitle(`Prediction: ${result.prediction}`)
@@ -64,28 +75,23 @@ module.exports = {
 
 /**
  * @param {string} input
+ * @returns {SpotifyTrackParseResult}
  */
 function parseSpotifyTrackURL(input) {
   try {
     const url = new URL(input);
 
-    if (url.hostname !== "open.spotify.com")
-    {
+    if (url.hostname !== "open.spotify.com") {
       return { valid: false, trackId: null };
     }
 
     const match = url.pathname.match(/^\/track\/([A-Za-z0-9]{22})/);
 
-    if (!match)
-    {
+    if (!match) {
       return { valid: false, trackId: null };
     }
 
-    return {
-      valid: true,
-      trackId: match[1]
-    };
-
+    return { valid: true, trackId: match[1] };
   } catch {
     return { valid: false, trackId: null };
   }
@@ -138,47 +144,28 @@ async function getSpotifyAccessToken() {
 }
 
 /**
- * @typedef {Object} SpotifyTrackResponse
- * @property {string} id
- * @property {string} name
- * @property {{ name: string }[]} artists
- * @property {{
- *   name: string,
- *   images: { url: string }[]
- * }} album
- * @property {{ spotify?: string }} [external_urls]
- */
-/**
  * @param {string} trackId
- * @returns {Promise<{
- *   id: string,
- *   title: string,
- *   artists: string[],
- *   url: string|null,
- *   image: string|null,
- *   album: string|null
- * }>}
+ * @returns {Promise<SpotifyTrackInfo>}
  */
 async function getSpotifyTrackInfo(trackId) {
   const token = await getSpotifyAccessToken();
 
   const res = await fetch(`https://api.spotify.com/v1/tracks/${trackId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
   });
 
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`Spotify track error: ${res.status} ${text}`);
   }
-/** @type {SpotifyTrackResponse} */
+
+  /** @type {SpotifyTrackResponse} */
   const t = await res.json();
 
   return {
     id: t.id,
     title: t.name,
-    artists: t.artists.map(a => a.name),
+    artists: t.artists.map((a) => a.name),
     url: t.external_urls?.spotify || null,
     image: t.album?.images?.[0]?.url || null,
     album: t.album?.name || null,

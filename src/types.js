@@ -30,4 +30,30 @@
  * 
  */
 
+/**
+ * Spotify parsing result for open.spotify.com track links.
+ * @typedef {{ valid: true, trackId: string } | { valid: false, trackId: null }} SpotifyTrackParseResult
+ */
+
+/**
+ * Normalized Spotify track info used by the bot.
+ * @typedef {Object} SpotifyTrackInfo
+ * @property {string} id
+ * @property {string} title
+ * @property {string[]} artists
+ * @property {string|null} url
+ * @property {string|null} image
+ * @property {string|null} album
+ */
+
+/**
+ * Minimal Spotify API track response shape (only what we use).
+ * @typedef {Object} SpotifyTrackResponse
+ * @property {string} id
+ * @property {string} name
+ * @property {{ name: string }[]} artists
+ * @property {{ name: string, images: { url: string }[] }} album
+ * @property {{ spotify?: string }} [external_urls]
+ */
+
 export {};
