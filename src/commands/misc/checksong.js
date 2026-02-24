@@ -39,56 +39,65 @@ module.exports = {
         }
         // trackId is now definitely a string
         const trackId = spotifyResult.trackId;
-        // Call the SH Labs API and get Spotify track info in parallel
-        const shlabsResult = await shlabsAPICall(trackId);
-        const spotifyInfo = await getSpotifyTrackInfo(trackId);
-        // Determine the embed color based on the track's album art
-        let embedColor = 0x1DB954; // fallback (Spotify green)
-        if (spotifyInfo.image) {
-          const { hex } = await getAverageColor(spotifyInfo.image);
-          embedColor = parseInt(hex.replace("#", ""), 16);
-        }
-        // Extract relevant data from the SH Labs API response
-        const {result,response_time, usage} = shlabsResult;
-        const {human, processed_ai, pure_ai} = result.spectral_probabilities;
-        // Log usage information to the console
-        console.log(`Daily usage left for SH Labs API: ${usage.daily_remaining} out of 500`);
-        console.log(`Monthly usage left for SH Labs API: ${usage.monthly_remaining} out of 10000`);
-        // Create an embed message to display the results
-        const embed = new EmbedBuilder()
-        .setTitle(`Prediction: ${result.prediction}`)
-        .setURL(spotifyInfo.url)
-        .setDescription(`Song: ${spotifyInfo.title} by ${spotifyInfo.artists.join(', ')}`)
-        .setThumbnail(spotifyInfo.image)
-        .setColor(embedColor)
-        .setFields(
-            {name: "Human", value: human.toFixed(2), inline: true}, 
-            {name: "Processed AI", value: processed_ai.toFixed(2), inline: true}, 
-            {name: "Pure AI", value: pure_ai.toFixed(2), inline: true})
-        .setFooter({text: `Response Time ${response_time}ms`})
-        .setTimestamp();
-        // Send the embed as a reply to the interaction
-        await interaction.editReply({embeds: [embed] });
-    }
-}
 
-/**
- * @param {string} trackId
- */
-async function  shlabsAPICall(trackId){
-  // Make a POST request to the SH Labs API with the Spotify track ID
-    const result = await axios.post(
-        'https://shlabs.music/api/v1/detect',
-        { spotifyTrackId: trackId },
+        try 
         {
-            headers: {
-                'X-API-Key': process.env.SH_LABS_APIKEY,
-                'Content-Type': 'application/json'
-            }
+          // Call the SH Labs API and get Spotify track info in parallel
+          const shlabsResult = await shlabsAPICall(trackId);
+          const spotifyInfo = await getSpotifyTrackInfo(trackId);
+          // Determine the embed color based on the track's album art
+          let embedColor = 0x1DB954; // fallback (Spotify green)
+          if (spotifyInfo.image) {
+            const { hex } = await getAverageColor(spotifyInfo.image);
+            embedColor = parseInt(hex.replace("#", ""), 16);
+          }
+          // Extract relevant data from the SH Labs API response
+          const {result, response_time, usage} = shlabsResult;
+          const {human, processed_ai, pure_ai} = result.spectral_probabilities;
+
+          const HumanBar = `${formatPercentage(human)}`;
+          const processedAIBar = `${formatPercentage(processed_ai)}`;
+          const pureAIBar = `${formatPercentage(pure_ai)}`;
+
+          // Log usage information to the console
+          console.log(`Daily usage left for SH Labs API: ${usage.daily_remaining} out of 500`);
+          console.log(`Monthly usage left for SH Labs API: ${usage.monthly_remaining} out of 10000`);
+          // Create an embed message to display the results
+          const embed = new EmbedBuilder()
+          .setTitle(`Prediction: ${result.prediction}`)
+          .setURL(spotifyInfo.url)
+          .setDescription(`Song: ${spotifyInfo.title} by ${spotifyInfo.artists.join(', ')}`)
+          .setThumbnail(spotifyInfo.image)
+          .setColor(embedColor)
+          .setFields(
+              {name: "Human", value: HumanBar, inline: false}, 
+              {name: "Processed AI", value: processedAIBar, inline: true}, 
+              {name: "Pure AI", value: pureAIBar, inline: true})
+          .setFooter({text: `Response Time ${response_time}ms`})
+          .setTimestamp();
+          // Send the embed as a reply to the interaction
+          await interaction.editReply({embeds: [embed] });
+        } 
+        catch (error) 
+        {
+          const err = /** @type {any} */ (error);
+
+          const status = err?.response?.status;
+          const apiMessage = err?.response?.data?.error || err?.response?.data?.message;
+
+          console.error("[check-song] SH Labs error:", err?.response?.data ?? err);
+
+          if (status && apiMessage) {
+            return interaction.editReply(`SH Labs error (${status}): ${apiMessage}\nTry again in a moment.`);
+          }
+
+          if (status) {
+            return interaction.editReply(`SH Labs error (${status}). Try again in a moment.`);
+          }
+
+          return interaction.editReply("An error occurred while checking the song. Try again in a moment.");
         }
-    )
-    // Return the data from the API response
-    return result.data;
+    }
 }
 
 /**
@@ -115,6 +124,25 @@ function parseSpotifyTrackURL(input) {
     // If any error occurs (invalid URL, etc.), return invalid
     return { valid: false, trackId: null };
   }
+}
+
+/**
+ * @param {string} trackId
+ */
+async function  shlabsAPICall(trackId){
+  // Make a POST request to the SH Labs API with the Spotify track ID
+    const result = await axios.post(
+        'https://shlabs.music/api/v1/detect',
+        { spotifyTrackId: trackId },
+        {
+            headers: {
+                'X-API-Key': process.env.SH_LABS_APIKEY,
+                'Content-Type': 'application/json'
+            }
+        }
+    )
+    // Return the data from the API response
+    return result.data;
 }
 
 /**
@@ -145,7 +173,6 @@ async function getSpotifyAccessToken() {
   const data = await res.json();
   return data.access_token;
 }
-
 /**
  * @param {string} trackId
  * @returns {Promise<SpotifyTrackInfo>}
@@ -174,4 +201,28 @@ async function getSpotifyTrackInfo(trackId) {
     image: t.album?.images?.[0]?.url || null,
     album: t.album?.name || null,
   };
+}
+
+/**
+ * Not using as this point
+ * Creates a visual progress bar for a probability value (0–1).
+ * @param {number} probability Value between 0 and 1
+ * @param {number} barWidth Number of blocks in the bar
+ * @returns {string}
+ */
+function createProbabilityBar(probability, barWidth = 10) {
+  const clampedProbability = Math.max(0, Math.min(100, probability));
+  const filledBlocks = Math.round(clampedProbability / 100 * barWidth);
+  const emptyBlocks = barWidth - filledBlocks;
+
+  return "█".repeat(filledBlocks) + "░".repeat(emptyBlocks);
+}
+/**
+ * Formats a probability (0–1) into a percentage string.
+ * @param {number} probability Value between 0 and 1
+ * @returns {string}
+ */
+function formatPercentage(probability) {
+  const clampedProbability = Math.max(0, Math.min(100, probability));
+  return `${clampedProbability}%`;
 }
