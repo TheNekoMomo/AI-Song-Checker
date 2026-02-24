@@ -73,6 +73,25 @@ module.exports = {
 }
 
 /**
+ * @param {string} trackId
+ */
+async function  shlabsAPICall(trackId){
+  // Make a POST request to the SH Labs API with the Spotify track ID
+    const result = await axios.post(
+        'https://shlabs.music/api/v1/detect',
+        { spotifyTrackId: trackId },
+        {
+            headers: {
+                'X-API-Key': process.env.SH_LABS_APIKEY,
+                'Content-Type': 'application/json'
+            }
+        }
+    )
+    // Return the data from the API response
+    return result.data;
+}
+
+/**
  * @param {string} input
  * @returns {SpotifyTrackParseResult}
  */
@@ -96,25 +115,6 @@ function parseSpotifyTrackURL(input) {
     // If any error occurs (invalid URL, etc.), return invalid
     return { valid: false, trackId: null };
   }
-}
-
-/**
- * @param {string} trackId
- */
-async function  shlabsAPICall(trackId){
-  // Make a POST request to the SH Labs API with the Spotify track ID
-    const result = await axios.post(
-        'https://shlabs.music/api/v1/detect',
-        {spotifyTrackId: trackId },
-        {
-            headers: {
-                'X-API-Key': process.env.SH_LABS_APIKEY,
-                'Content-Type': 'application/json'
-            }
-        }
-    )
-    // Return the data from the API response
-    return result.data;
 }
 
 /**
