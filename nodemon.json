@@ -1,0 +1,11 @@
+{
+  "watch": ["src"],
+  "ignore": [
+    "node_modules",
+    "*.log",
+    "*-player-script.js",
+    "player-script*.js",
+    "177*-player-script.js"
+  ],
+  "ext": "js,json"
+}

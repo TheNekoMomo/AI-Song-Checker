@@ -3,13 +3,14 @@
   "version": "1.0.0",
   "main": "src/index.js",
   "scripts": {
-  "start": "node src/index.js"
-},
+    "start": "node src/index.js"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@distube/ytdl-core": "^4.16.12",
     "axios": "^1.13.5",
     "discord.js": "^14.21.0",
     "dotenv": "^17.2.1",
