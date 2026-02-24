@@ -13,11 +13,13 @@ async function getApplicationCommands(client, guildId)
 
   if (guildId) 
   {
+    console.log(`Fetching application commands for guild ID: ${guildId}`);
     const guild = await client.guilds.fetch(guildId);
     applicationCommands = guild.commands;
   } 
   else
   {
+    console.log(`Fetching global application commands`);
     applicationCommands = client.application?.commands;
   }
 
