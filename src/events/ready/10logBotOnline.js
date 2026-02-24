@@ -4,5 +4,5 @@
 
 /** @type {EventFileHandler} */
 module.exports = (client) => {
-    console.log(`${client.user?.tag} is online. test`);
+    console.log(`${client.user?.tag} is online.`);
 };
