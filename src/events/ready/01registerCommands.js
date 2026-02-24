@@ -12,7 +12,7 @@ module.exports = async (client) => {
     try 
     {
         const localCommands = getLocalCommands();
-        const applicationCommands = await getApplicationCommands(client, testServer);
+        const applicationCommands = await getApplicationCommands(client);
 
         for (let localCommand of localCommands)
         {
