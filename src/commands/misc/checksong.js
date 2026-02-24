@@ -70,7 +70,7 @@ module.exports = {
           .setThumbnail(spotifyInfo.image)
           .setColor(embedColor)
           .setFields(
-              {name: "Human", value: HumanBar, inline: false}, 
+              {name: "Human", value: HumanBar, inline: true}, 
               {name: "Processed AI", value: processedAIBar, inline: true}, 
               {name: "Pure AI", value: pureAIBar, inline: true})
           .setFooter({text: `Response Time ${response_time}ms`})
