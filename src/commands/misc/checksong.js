@@ -30,7 +30,9 @@ module.exports = {
         if (interaction.inGuild()) {
           const guildConfig = await GuildConfig.findOne({ guildId: interaction.guildId });
           if (guildConfig && guildConfig.allowedChannels && guildConfig.allowedChannels.length > 0 && !guildConfig.allowedChannels.includes(interaction.channelId)) {
-            return interaction.reply({ content: "This command is not allowed in this channel.", flags: MessageFlags.Ephemeral });
+            // Gets an the array of allowed channels from the database to add to the message to tell the user which channels they can use the command in
+            const allowedChannelsMention = guildConfig.allowedChannels.map(id => `<#${id}>`).join(', ');
+            return interaction.reply({ content: `This command is not allowed in this channel. Please use one of the following channels: ${allowedChannelsMention}`, flags: MessageFlags.Ephemeral });
           }
         }
 
