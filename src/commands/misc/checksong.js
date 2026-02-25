@@ -29,12 +29,12 @@ module.exports = {
         
 
         // Check if the interaction is in a guild and if the channel is allowed
-        if (interaction.inGuild()) {
-          const guildConfig = await GuildConfig.findOne({ guildId: interaction.guildId });
-          if (guildConfig && guildConfig.allowedChannels && guildConfig.allowedChannels.length > 0 && !guildConfig.allowedChannels.includes(interaction.channelId)) {
-            return interaction.reply({ content: "This command is not allowed in this channel.", flags: MessageFlags.Ephemeral });
-          }
-        }
+        //if (interaction.inGuild()) {
+          //const guildConfig = await GuildConfig.findOne({ guildId: interaction.guildId });
+          //if (guildConfig && guildConfig.allowedChannels && guildConfig.allowedChannels.length > 0 && !guildConfig.allowedChannels.includes(interaction.channelId)) {
+            //return interaction.reply({ content: "This command is not allowed in this channel.", flags: MessageFlags.Ephemeral });
+          //}
+        //}
 
         // Defer the reply immediately to allow for processing time
         await interaction.deferReply();
