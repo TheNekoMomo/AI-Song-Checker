@@ -55,3 +55,6 @@
  * @property {{ name: string, images: { url: string }[] }} album
  * @property {{ spotify?: string }} [external_urls]
  */
+
+// Make this file a CommonJS module so JSDoc `import('...')` type imports resolve cleanly.
+module.exports = {};
