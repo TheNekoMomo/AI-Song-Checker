@@ -1,0 +1,1 @@
+This bot is privert how the fuck are you reading this???!?

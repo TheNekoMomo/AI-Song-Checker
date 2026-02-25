@@ -37,7 +37,6 @@ async function  handleCommands (client, interaction)
             if (!devs.includes(interaction.user.id))
             {
                 interaction.reply({content: 'Only developers are allowed to run this command.', flags: MessageFlags.Ephemeral });
-                runCommand = false;
                 return;
             }
         }
@@ -46,7 +45,6 @@ async function  handleCommands (client, interaction)
             if (interaction.guildId !== testServer)
             {
                 interaction.reply({content: 'This command cannot be ran here.', flags: MessageFlags.Ephemeral });
-                runCommand = false;
                 return;
             }
         }
@@ -63,6 +61,9 @@ async function  handleCommands (client, interaction)
                 }
             }
         }
+
+        if(!runCommand) return;
+
         if (commandObject.botPermissions?.length)
         {
             for (let permission of commandObject.botPermissions)

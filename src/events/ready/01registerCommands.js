@@ -28,7 +28,7 @@ module.exports = async (client) => {
         {
             const { name, description, options } = localCommand;
 
-            const existingCommand = await applicationCommands?.cache.find((cmd) => cmd.name === name);
+            const existingCommand = applicationCommands?.cache.find((cmd) => cmd.name === name);
             if (existingCommand)
             {
                 if (localCommand.deleted)
@@ -61,6 +61,6 @@ module.exports = async (client) => {
     }
     catch (error) 
     {
-        console.log(`There was ana error: ${error}`);
+        console.log(`There was an error: ${error}`);
     }
 };

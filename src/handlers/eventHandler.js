@@ -22,12 +22,17 @@ function EventHandler (client)
 
         const eventName = eventFolder.replace(/\\/g, '/').split('/').pop();
         if (!eventName) continue;
+
+        const handlers = eventFiles.map(file => {
+            /** @type {EventFileHandler} */
+            const handler = require(file);
+            return handler;
+        });
+
         client.on(eventName, async (...args) => {
-            for (let eventFile of eventFiles)
+            for (let handler of handlers)
             {
-                /** @type {EventFileHandler} */
-                const eventFunction = require(eventFile);
-                await eventFunction(client, ...args);
+                await handler(client, ...args);
             }
         });
     }

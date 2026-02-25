@@ -1,8 +1,8 @@
 require('dotenv').config();
 
-/** @typedef {import('../../types').SpotifyTrackParseResult} SpotifyTrackParseResult */
-/** @typedef {import('../../types').SpotifyTrackInfo} SpotifyTrackInfo */
-/** @typedef {import('../../types').SpotifyTrackResponse} SpotifyTrackResponse */
+/** @typedef {import('../types').SpotifyTrackParseResult} SpotifyTrackParseResult */
+/** @typedef {import('../types').SpotifyTrackInfo} SpotifyTrackInfo */
+/** @typedef {import('../types').SpotifyTrackResponse} SpotifyTrackResponse */
 
 /**
  * @param {string} input

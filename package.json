@@ -6,9 +6,9 @@
     "start": "node src/index.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "Momo",
   "license": "ISC",
-  "description": "",
+  "description": "A Discord bot that checks if a song is AI-generated or not using SHLab's API.",
   "dependencies": {
     "axios": "^1.13.5",
     "discord.js": "^14.21.0",

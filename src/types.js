@@ -55,5 +55,3 @@
  * @property {{ name: string, images: { url: string }[] }} album
  * @property {{ spotify?: string }} [external_urls]
  */
-
-export {};

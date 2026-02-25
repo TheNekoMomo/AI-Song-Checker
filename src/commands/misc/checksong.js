@@ -78,9 +78,8 @@ module.exports = {
           // Create an embed message to display the results
           const embed = new EmbedBuilder()
           .setTitle(`Prediction: ${result.prediction}`)
-          .setURL(spotifyInfo.url)
+          .setURL(songURL)
           .setDescription(`Song: ${spotifyInfo.title} by ${spotifyInfo.artists.join(', ')}`)
-          .setThumbnail(spotifyInfo.image)
           .setColor(embedColor)
           .setFields(
               {name: "Human", value: `${human}%`, inline: true}, 
@@ -88,6 +87,10 @@ module.exports = {
               {name: "Pure AI", value: `${pure_ai}%`, inline: true})
           .setFooter({text: `Response Time ${response_time}ms`})
           .setTimestamp();
+
+          if(spotifyInfo.image){
+            embed.setThumbnail(spotifyInfo.image);
+          }
 
           // Send the embed as a reply to the interaction
           await interaction.editReply({embeds: [embed] });
@@ -99,14 +102,14 @@ module.exports = {
           const status = err?.response?.status;
           const apiMessage = err?.response?.data?.error || err?.response?.data?.message;
 
-          console.error("[check-song] SH Labs error:", err?.response?.data ?? err);
+          console.error("[check-song] error:", err?.response?.data ?? err);
 
           if (status && apiMessage) {
-            return interaction.editReply(`SH Labs error (${status}): ${apiMessage}\nTry again in a moment.`);
+            return interaction.editReply(`error (${status}): ${apiMessage}\nTry again in a moment.`);
           }
 
           if (status) {
-            return interaction.editReply(`SH Labs error (${status}). Try again in a moment.`);
+            return interaction.editReply(`error (${status}). Try again in a moment.`);
           }
 
           return interaction.editReply("An error occurred while checking the song. Try again in a moment.");
