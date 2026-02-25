@@ -33,15 +33,17 @@ function parseSpotifyTrackURL(input) {
 
 let cachedToken = null;
 let tokenExpiresAt = 0;
+const tokenBufferTime = 10_000; // 10 seconds buffer to account for network delays and processing time
 
 /**
  * Gets an app access token from Spotify using Client Credentials flow.
  * @returns {Promise<string>}
  */
 async function getSpotifyAccessToken() {
-  const now = Date.now();
 
-  if(cachedToken && now < tokenExpiresAt - 10_000){
+  // If we have a cached token that hasn't expired, return it
+  const now = Date.now();
+  if(cachedToken && now < tokenExpiresAt - tokenBufferTime){
     return cachedToken;
   }
 
