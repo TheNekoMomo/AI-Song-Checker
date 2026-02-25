@@ -1,7 +1,7 @@
 // @ts-check
 
 require('dotenv').config();
-//const { connectDB } = require("./db");
+const { connectDB } = require("./db");
 const { Client, IntentsBitField } = require('discord.js');
 const eventHandler = require('./handlers/eventHandler');
 
@@ -27,7 +27,7 @@ eventHandler(client);
   }
 
     try {
-        //await connectDB(process.env.MONGODB_URI);
+        await connectDB(process.env.MONGODB_URI);
         await client.login(process.env.TOKEN);
     }
     catch (error) {
