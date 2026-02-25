@@ -1,11 +1,12 @@
 // @ts-check
 /** @typedef {import('../../types').Command} Command */
 
-const { ApplicationCommandOptionType, EmbedBuilder } = require('discord.js');
+const { ApplicationCommandOptionType, EmbedBuilder, MessageFlags } = require('discord.js');
 const { getAverageColor } = require("fast-average-color-node");
 const axios = require('axios');
 require('dotenv').config();
 const { parseSpotifyTrackURL, getSpotifyTrackInfo } = require('../../utils/spotifyHelper');
+const GuildConfig = require("../../models/GuildConfig");
 
 /** @type {Command} */
 module.exports = {
@@ -25,9 +26,19 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
     callback: async (client, interaction) => {
+        
+
+        // Check if the interaction is in a guild and if the channel is allowed
+        if (interaction.inGuild()) {
+          const guildConfig = await GuildConfig.findOne({ guildId: interaction.guildId });
+          if (guildConfig && guildConfig.allowedChannels && guildConfig.allowedChannels.length > 0 && !guildConfig.allowedChannels.includes(interaction.channelId)) {
+            return interaction.reply({ content: "This command is not allowed in this channel.", flags: MessageFlags.Ephemeral });
+          }
+        }
+
         // Defer the reply immediately to allow for processing time
         await interaction.deferReply();
-        
+
         // Get the Spotify URL from the command options
         const songURL = interaction.options.getString('spotify-url', true);
 
