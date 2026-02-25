@@ -56,8 +56,10 @@ module.exports = {
         try 
         {
           // Call the SH Labs API and get Spotify track info in parallel
-          const shlabsResult = await shlabsAPICall(trackId);
-          const spotifyInfo = await getSpotifyTrackInfo(trackId);
+          const [shlabsResult, spotifyInfo] = await Promise.all([
+            shlabsAPICall(trackId),
+            getSpotifyTrackInfo(trackId)
+          ]);
 
           // Determine the embed color based on the track's album art
           let embedColor = 0x1DB954; // fallback (Spotify green)

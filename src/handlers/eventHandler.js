@@ -18,16 +18,16 @@ function EventHandler (client)
     {
         const eventFiles = getAllFiles(eventFolder);
 
-        eventFiles.sort((a, b) => Number(a > b));
+        eventFiles.sort((a, b) => a.localeCompare(b));
 
         const eventName = eventFolder.replace(/\\/g, '/').split('/').pop();
         if (!eventName) continue;
-        client.on(eventName, async (arg) => {
+        client.on(eventName, async (...args) => {
             for (let eventFile of eventFiles)
             {
                 /** @type {EventFileHandler} */
                 const eventFunction = require(eventFile);
-                await eventFunction(client, arg);
+                await eventFunction(client, ...args);
             }
         });
     }

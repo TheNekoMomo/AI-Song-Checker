@@ -30,16 +30,26 @@ function parseSpotifyTrackURL(input) {
   }
 }
 
+
+let cachedToken = null;
+let tokenExpiresAt = 0;
+
 /**
  * Gets an app access token from Spotify using Client Credentials flow.
  * @returns {Promise<string>}
  */
 async function getSpotifyAccessToken() {
+  const now = Date.now();
+
+  if(cachedToken && now < tokenExpiresAt - 10_000){
+    return cachedToken;
+  }
+
   // Spotify Client ID and Secret retrieved from environment variables
   const clientId = process.env.SPOTIFY_CLIENT_ID;
   const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
-  // Encode the client ID and secret in Base64 for the Authorization header
   const basic = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
+  
   // Make a POST request to Spotify's token endpoint to get an access token
   const res = await fetch("https://accounts.spotify.com/api/token", {
     method: "POST",
@@ -54,8 +64,12 @@ async function getSpotifyAccessToken() {
     const text = await res.text();
     throw new Error(`Spotify token error: ${res.status} ${text}`);
   }
-  // Parse the JSON response to extract the access token
+
+  // Parse the JSON response to extract the access token and its expiration time, then cache it for future use
   const data = await res.json();
+  cachedToken = data.access_token;
+  tokenExpiresAt = Date.now() + (data.expires_in * 1000);
+
   return data.access_token;
 }
 
@@ -91,6 +105,5 @@ async function getSpotifyTrackInfo(trackId) {
 
 module.exports = {
   parseSpotifyTrackURL,
-  getSpotifyAccessToken,
   getSpotifyTrackInfo
 };
