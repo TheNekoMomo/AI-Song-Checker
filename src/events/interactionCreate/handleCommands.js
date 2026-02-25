@@ -2,6 +2,7 @@
 
 const { devs, testServer, guildWhitelistIDs } = require('../../../config.json');
 const getLocalCommands = require('../../utils/getLocalCommands');
+const { MessageFlags } = require('discord.js');
 
 /** @typedef {import('../../types').EventFileHandler} EventFileHandler */
 
@@ -23,9 +24,11 @@ async function  handleCommands (client, interaction)
 
         if (!commandObject) return;
 
+        let runCommand = true;
+
         if (!guildWhitelistIDs.includes(interaction.guildId))
         {
-            interaction.reply({content: 'This server is not on the whitelist to use any command.', ephemeral: true});
+            interaction.reply({content: 'This server is not on the whitelist to use any command.', flags: MessageFlags.Ephemeral });
             return;
         }
 
@@ -33,7 +36,8 @@ async function  handleCommands (client, interaction)
         {
             if (!devs.includes(interaction.user.id))
             {
-                interaction.reply({content: 'Only developers are allowed to run this command.', ephemeral: true});
+                interaction.reply({content: 'Only developers are allowed to run this command.', flags: MessageFlags.Ephemeral });
+                runCommand = false;
                 return;
             }
         }
@@ -41,7 +45,8 @@ async function  handleCommands (client, interaction)
         {
             if (interaction.guildId !== testServer)
             {
-                interaction.reply({content: 'This command cannot be ran here.', ephemeral: true});
+                interaction.reply({content: 'This command cannot be ran here.', flags: MessageFlags.Ephemeral });
+                runCommand = false;
                 return;
             }
         }
@@ -52,7 +57,8 @@ async function  handleCommands (client, interaction)
             {
                 if (!interaction.memberPermissions.has(permission))
                 {
-                    interaction.reply({content: 'You do not have permission to run this command.', ephemeral: true});
+                    interaction.reply({content: 'You do not have permission to run this command.', flags: MessageFlags.Ephemeral });
+                    runCommand = false;
                     break;
                 }
             }
@@ -64,13 +70,17 @@ async function  handleCommands (client, interaction)
                 const bot = interaction.guild?.members.me;
                 if (bot && !bot.permissions.has(permission))
                 {
-                    interaction.reply({content: 'I do not have permission to run this command.', ephemeral: true});
+                    interaction.reply({content: 'I do not have permission to run this command.', flags: MessageFlags.Ephemeral });
+                    runCommand = false;
                     break;
                 }
             }
         }
 
-        await commandObject.callback(client, interaction);
+        if(runCommand){
+            await commandObject.callback(client, interaction);
+        }
+        
     } 
     catch (error) {
         console.log(`There was an error running this command: ${error}`);

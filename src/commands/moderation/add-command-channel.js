@@ -37,7 +37,7 @@ module.exports = {
         await GuildConfig.findOneAndUpdate(
             { guildId: interaction.guildId },
             { $addToSet: { allowedChannels: channel.id } },
-            { upsert: true, new: true }
+            { upsert: true, returnDocument: 'after' }
         );
 
         return interaction.reply({ content: `Added ${channel} to the list of allowed channels.`, flags: MessageFlags.Ephemeral });

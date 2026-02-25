@@ -37,7 +37,7 @@ module.exports = {
         await GuildConfig.findOneAndUpdate(
             { guildId: interaction.guildId },
             { $pull: { allowedChannels: channel.id } },
-            { new: true }
+            { returnDocument: 'after' }
         );
 
         return interaction.reply({ content: `Removed ${channel} from the list of allowed channels.`, flags: MessageFlags.Ephemeral });
