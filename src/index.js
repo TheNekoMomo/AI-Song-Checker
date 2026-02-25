@@ -18,13 +18,14 @@ eventHandler(client);
 
 (async () => {
 
+    // Log the outbound IP address for debugging purposes
     try {
         const res = await fetch("https://api.ipify.org?format=json");
         const data = await res.json();
         console.log("[network] outbound IPv4:", data.ip);
-  } catch (e) {
-        console.log("[network] could not fetch outbound IP:", e?.message || e);
-  }
+    } catch (e) {
+            console.log("[network] could not fetch outbound IP:", e?.message || e);
+    }
 
     try {
         await connectDB(process.env.MONGODB_URI);

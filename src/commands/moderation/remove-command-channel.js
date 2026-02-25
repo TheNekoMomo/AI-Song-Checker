@@ -18,7 +18,6 @@ module.exports = {
         },
     ],
     permissionsRequired: [PermissionFlagsBits.ManageGuild],
-    deleted: true,
     
     /**
      * @param {import('discord.js').Client} client
