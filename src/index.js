@@ -1,5 +1,3 @@
-// @ts-check
-
 require('dotenv').config();
 const { connectDB } = require("./db");
 const { Client, IntentsBitField } = require('discord.js');
@@ -13,7 +11,6 @@ const client = new Client({
     ]
 });
 
-//@ts-expect-error
 eventHandler(client);
 
 (async () => {

@@ -113,5 +113,6 @@ async function getSpotifyTrackInfo(trackId) {
 
 module.exports = {
   parseSpotifyTrackURL,
+  getSpotifyAccessToken,
   getSpotifyTrackInfo
 };
