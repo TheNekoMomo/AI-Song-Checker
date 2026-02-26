@@ -1,4 +1,5 @@
 require('dotenv').config();
+const { performance } = require('perf_hooks');
 
 /** @typedef {import('../types').SpotifyTrackParseResult} SpotifyTrackParseResult */
 /** @typedef {import('../types').SpotifyTrackInfo} SpotifyTrackInfo */
@@ -80,6 +81,8 @@ async function getSpotifyAccessToken() {
  * @returns {Promise<SpotifyTrackInfo>}
  */
 async function getSpotifyTrackInfo(trackId) {
+  // Record the start time to measure total response time later
+  const startTime = performance.now();
   // Get an access token from Spotify to authenticate the API request
   const token = await getSpotifyAccessToken();
   // Make a GET request to Spotify's API to retrieve track information using the track ID
@@ -95,6 +98,8 @@ async function getSpotifyTrackInfo(trackId) {
   /** @type {SpotifyTrackResponse} */
   const t = await res.json();
   // Return an object containing the track's ID, title, artists, Spotify URL, album art image URL, and album name
+  const endTime = performance.now();
+  const totalResponseTime = (endTime - startTime);
   return {
     id: t.id,
     title: t.name,
@@ -102,6 +107,7 @@ async function getSpotifyTrackInfo(trackId) {
     url: t.external_urls?.spotify || null,
     image: t.album?.images?.[0]?.url || null,
     album: t.album?.name || null,
+    durationMs: totalResponseTime
   };
 }
 

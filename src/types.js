@@ -44,6 +44,7 @@
  * @property {string|null} url
  * @property {string|null} image
  * @property {string|null} album
+ * @property {number} [durationMs]
  */
 
 /**
