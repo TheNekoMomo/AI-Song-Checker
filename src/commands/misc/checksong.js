@@ -1,7 +1,7 @@
 // @ts-check
 /** @typedef {import('../../types').Command} Command */
 
-const { ApplicationCommandOptionType, EmbedBuilder, MessageFlags } = require('discord.js');
+const { ApplicationCommandOptionType, EmbedBuilder, ChannelType, MessageFlags } = require('discord.js');
 const { getAverageColor } = require("fast-average-color-node");
 const axios = require('axios');
 require('dotenv').config();
@@ -27,18 +27,14 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
     callback: async (client, interaction) => {
+
+      // Check if command is used in a guild, in a normal text channel.
+      if(!interaction.inGuild() || interaction.channel?.type !== ChannelType.GuildText) {
+        return interaction.reply({ content: "This command can only be used in a normal text channel within a guild.", flags: MessageFlags.Ephemeral });
+      }
+
       // Record the start time for performance measurement
       const startTime = performance.now();
-
-      // Check if the interaction is in a guild and if the channel is allowed
-      if (interaction.inGuild()) {
-        const guildConfig = await GuildConfig.findOne({ guildId: interaction.guildId });
-        if (guildConfig && guildConfig.allowedChannels && guildConfig.allowedChannels.length > 0 && !guildConfig.allowedChannels.includes(interaction.channelId)) {
-          // Gets an the array of allowed channels from the database to add to the message to tell the user which channels they can use the command in
-          const allowedChannelsMention = guildConfig.allowedChannels.map(id => `<#${id}>`).join(', ');
-          return interaction.reply({ content: `This command is not allowed in this channel. Please use one of the following channels: ${allowedChannelsMention}`, flags: MessageFlags.Ephemeral });
-        }
-      }
 
       // Defer the reply immediately to allow for processing time
       await interaction.deferReply();
@@ -58,11 +54,25 @@ module.exports = {
       const trackId = spotifyResult.trackId;
       try 
       {
-        // Call the SH Labs API and get Spotify track info in parallel
-        const [shlabsResult, spotifyInfo] = await Promise.all([
-          shlabsAPICall(trackId),
+        // Fetch guild config, SH Labs API, and Spotify info in parallel
+        const shlabsStart = performance.now();
+        const shlabsPromise = shlabsAPICall(trackId).then(res => ({ res, took: performance.now() - shlabsStart }));
+
+        const [guildConfig, shlabsWrapped, spotifyInfo] = await Promise.all([
+          GuildConfig.findOne({ guildId: interaction.guildId }),
+          shlabsPromise,
           getSpotifyTrackInfo(trackId)
         ]);
+
+        const shlabsResult = shlabsWrapped.res;
+        const shlabsDurationMs = shlabsWrapped.took;
+
+        // Check if the interaction is in a guild and if the channel is allowed
+        if (guildConfig && guildConfig.allowedChannels && guildConfig.allowedChannels.length > 0 && !guildConfig.allowedChannels.includes(interaction.channelId)) {
+          // Gets an the array of allowed channels from the database to add to the message to tell the user which channels they can use the command in
+          const allowedChannelsMention = guildConfig.allowedChannels.map(id => `<#${id}>`).join(', ');
+          return interaction.editReply({ content: `This command is not allowed in this channel. Please use one of the following channels: ${allowedChannelsMention}` });
+        }
 
         // Determine the embed color based on the track's album art
         let embedColor = 0x1DB954; // fallback (Spotify green)
@@ -75,7 +85,7 @@ module.exports = {
           }
         }
         // Extract relevant data from the SH Labs API response
-        const {result, response_time, usage} = shlabsResult;
+        const {result, usage} = shlabsResult;
         const {human, processed_ai, pure_ai} = result.spectral_probabilities;
 
         // Log usage information to the console
@@ -100,7 +110,7 @@ module.exports = {
 
         const endTime = performance.now();
         const totalResponseTime = ((endTime - startTime) / 1000).toFixed(2); // convert ms to seconds
-        const SHLabsAPIResponseTime = (response_time / 1000).toFixed(2); // convert ms to seconds
+        const SHLabsAPIResponseTime = (shlabsDurationMs / 1000).toFixed(2); // convert ms to seconds (measured locally)
         const spotifyAPITime = spotifyInfo.durationMs ? (spotifyInfo.durationMs / 1000).toFixed(2) : 'N/A'; // convert ms to seconds
         embed.setFooter({text: `Total Response Time ${totalResponseTime} seconds | SH Labs API Response Time ${SHLabsAPIResponseTime} seconds | Spotify API Response Time ${spotifyAPITime} seconds`});
 
