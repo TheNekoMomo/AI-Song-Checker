@@ -3,11 +3,12 @@
 
 const { ApplicationCommandOptionType, EmbedBuilder, ChannelType, MessageFlags } = require('discord.js');
 const { getAverageColor } = require("fast-average-color-node");
-const axios = require('axios');
-require('dotenv').config();
-const { parseSpotifyTrackURL, getSpotifyTrackInfo } = require('../../utils/spotifyHelper');
-const GuildConfig = require("../../models/GuildConfig");
 const { performance } = require('perf_hooks');
+
+const { parseSpotifyTrackURL, getSpotifyTrackInfo } = require('../../utils/spotifyHelper');
+const { shlabsAPICall, SightengineAPICall } = require('../../utils/aiAPI');
+
+const GuildConfig = require("../../models/GuildConfig");
 
 /** @type {Command} */
 module.exports = {
@@ -50,22 +51,30 @@ module.exports = {
         return interaction.editReply("Invalid Spotify track URL.");
       }
 
-      // trackId is now definitely a string
-      const trackId = spotifyResult.trackId;
       try 
       {
-        // Fetch guild config, SH Labs API, and Spotify info in parallel
-        const shlabsStart = performance.now();
-        const shlabsPromise = shlabsAPICall(trackId).then(res => ({ res, took: performance.now() - shlabsStart }));
+        // Make the SHLabs Promise with the logic for measuring its duration
+        const shlabsPromise = shlabsAPICall(spotifyResult.trackId).then(res => ({ res, took: performance.now() - shlabsStart }));
 
-        const [guildConfig, shlabsWrapped, spotifyInfo] = await Promise.all([
+        // Make the spotify Promise
+        const spotifyPromise = getSpotifyTrackInfo(spotifyResult.trackId);
+        // Make the Sightengine Promise, which depends on the Spotify Promise to get the album art URL
+        const sightenginePromise = spotifyPromise.then(info => {
+          if (info && info.image) {
+            return SightengineAPICall(info.image).then(res => ({ res, image: info.image }));
+          }
+          return null;
+        });
+
+        const shlabsStart = performance.now();
+
+        // Start DB query, SHLabs API Call, Spotify API call, and Sightengine API call in parallel
+        const [guildConfig, shlabsWrapped, spotifyInfo, sightengineWrapped] = await Promise.all([
           GuildConfig.findOne({ guildId: interaction.guildId }),
           shlabsPromise,
-          getSpotifyTrackInfo(trackId)
+          spotifyPromise,
+          sightenginePromise
         ]);
-
-        const shlabsResult = shlabsWrapped.res;
-        const shlabsDurationMs = shlabsWrapped.took;
 
         // Check if the interaction is in a guild and if the channel is allowed
         if (guildConfig && guildConfig.allowedChannels && guildConfig.allowedChannels.length > 0 && !guildConfig.allowedChannels.includes(interaction.channelId)) {
@@ -85,8 +94,9 @@ module.exports = {
           }
         }
         // Extract relevant data from the SH Labs API response
-        const {result, usage} = shlabsResult;
+        const {result, usage} = shlabsWrapped.res;
         const {human, processed_ai, pure_ai} = result.spectral_probabilities;
+        const sightengineAIProbabilitypercent = sightengineWrapped?.res?.type?.ai_generated * 100;
 
         // Log usage information to the console
         console.log(`Daily usage left for SH Labs API: ${usage.daily_remaining} out of 500`);
@@ -101,7 +111,8 @@ module.exports = {
         .setFields(
             {name: "Human", value: `${human}%`, inline: true}, 
             {name: "Processed AI", value: `${processed_ai}%`, inline: true}, 
-            {name: "Pure AI", value: `${pure_ai}%`, inline: true})
+            {name: "Pure AI", value: `${pure_ai}%`, inline: true},
+            {name: "Image AI Analysis", value: `${sightengineAIProbabilitypercent}%`, inline: false})
         .setTimestamp();
 
         if(spotifyInfo.image){
@@ -109,6 +120,8 @@ module.exports = {
         }
 
         const endTime = performance.now();
+        const shlabsDurationMs = shlabsWrapped.took;
+
         const totalResponseTime = ((endTime - startTime) / 1000).toFixed(2); // convert ms to seconds
         const SHLabsAPIResponseTime = (shlabsDurationMs / 1000).toFixed(2); // convert ms to seconds (measured locally)
         const spotifyAPITime = spotifyInfo.durationMs ? (spotifyInfo.durationMs / 1000).toFixed(2) : 'N/A'; // convert ms to seconds
@@ -137,23 +150,4 @@ module.exports = {
         return interaction.editReply("An error occurred while checking the song. Try again in a moment.");
       }
     }
-}
-
-/**
- * @param {string} trackId
- */
-async function  shlabsAPICall(trackId){
-  // Make a POST request to the SH Labs API with the Spotify track ID
-    const result = await axios.post(
-        'https://shlabs.music/api/v1/detect',
-        { spotifyTrackId: trackId },
-        {
-            headers: {
-                'X-API-Key': process.env.SH_LABS_APIKEY,
-                'Content-Type': 'application/json'
-            }
-        }
-    )
-    // Return the data from the API response
-    return result.data;
 }
