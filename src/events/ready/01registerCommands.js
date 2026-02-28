@@ -2,16 +2,12 @@
 require('dotenv').config();
 
 const { testServer } = require('../../../config.json');
+const { isLocal } = require('../../utils/environment');
 const getApplicationCommands = require('../../utils/getApplicationCommands');
 const getLocalCommands = require('../../utils/getLocalCommands');
 const areCommandsDifferent = require('../../utils/areCommandsDifferent');
 
 /** @typedef {import('../../types').EventFileHandler} EventFileHandler */
-
-function isTestBuild() {
-  const raw = (process.env.TEST_BUILD || '').trim().toLowerCase();
-  return raw === 'true' || raw === '1' || raw === 'yes' || raw === 'y';
-}
 
 /** @type {EventFileHandler} */
 module.exports = async (client) => {
@@ -19,7 +15,7 @@ module.exports = async (client) => {
     {
         // If TEST_BUILD=true -> guild commands in testServer
         // Else -> global commands
-        const guildId = isTestBuild() ? testServer : undefined;
+        const guildId = isLocal() ? testServer : undefined;
 
         const localCommands = getLocalCommands();
         const applicationCommands = await getApplicationCommands(client, guildId);
