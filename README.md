@@ -1,9 +1,9 @@
 # AI Song Checker
 
-Discord bot that evaluates whether a Spotify song has been generated or
-processed by artificial intelligence using the SH Labs API.  It also
-provides a handful of utility commands and supports per-guild
-configuration.
+Discord bot that evaluates whether a Spotify song has been generated
+or processed by artificial intelligence using the SH Labs API.  Aside
+from its guild configuration helpers, the only user-facing command is
+`/check-song`.
 
 ---
 
@@ -11,10 +11,9 @@ configuration.
 
 * `/check-song` – analyze a Spotify track URL and receive a spectral
   probability report (human / processed AI / pure AI).
-* `/ping` – basic latency test.
 * Configuration commands to restrict bot usage to specific channels.
-* Automatic command registration to a test guild when running locally or
-  when `TEST_BUILD` is enabled.
+* Automatic command registration to the `testServer` guild when the
+  local `.local_marker` file is present or when `TEST_BUILD` is enabled.
 * Mongoose-based persistence for guild settings.
 * Color-customized embeds derived from album art.
 * Development helpers: local environment detection, sampling of API
@@ -25,20 +24,22 @@ configuration.
 ## Installation
 
 ```bash
-git clone <repo-url> "AI-Song-Checker"
+git clone https://github.com/TheNekoMomo/AI-Song-Checker.git
 cd "AI-Song-Checker"
 npm install
-cp .env.example .env    # set TOKEN, SH_LABS_APIKEY, etc.
+cp .env.example .env    # populate required variables below
 ```
 
-### Recommended environment variables
+### Required environment variables
 
-| Name            | Purpose                                |
-|-----------------|----------------------------------------|
-| `DISCORD_TOKEN` | Discord bot token                      |
-| `SH_LABS_APIKEY`| API key for SH Labs music detection    |
-| `MONGODB_URI`   | MongoDB connection string (optional)   |
-| `TEST_BUILD`    | `true` to force test-server behavior   |
+| Name             | Purpose                                 |
+|------------------|-----------------------------------------|
+| `DISCORD_TOKEN`  | Discord bot token                       |
+| `SH_LABS_APIKEY` | API key for SH Labs music detection     |
+| `MONGODB_URI`    | MongoDB connection string (optional)    |
+| `TEST_BUILD`     | `true` to force test-server behavior    |
+
+The first two are mandatory; the others are optional or situational.
 
 
 ## Local development
