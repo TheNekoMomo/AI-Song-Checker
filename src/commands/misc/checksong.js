@@ -98,8 +98,6 @@ module.exports = {
         const {spectral_probabilities, temporal_probabilities} = result;
         const sightengineAIProbabilitypercent = sightengineWrapped?.res?.type?.ai_generated * 100;
 
-        console.log(`SH Labs API result:`, result);
-
         // Log usage information to the console
         console.log(`Daily usage left for SH Labs API: ${usage.daily_remaining} out of 500`);
         console.log(`Monthly usage left for SH Labs API: ${usage.monthly_remaining} out of 10000`);
