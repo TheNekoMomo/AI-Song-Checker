@@ -95,8 +95,10 @@ module.exports = {
         }
         // Extract relevant data from the SH Labs API response
         const {result, usage} = shlabsWrapped.res;
-        const {human, processed_ai, pure_ai} = result.spectral_probabilities;
+        const {spectral_probabilities, temporal_probabilities} = result;
         const sightengineAIProbabilitypercent = sightengineWrapped?.res?.type?.ai_generated * 100;
+
+        console.log(`SH Labs API result:`, result);
 
         // Log usage information to the console
         console.log(`Daily usage left for SH Labs API: ${usage.daily_remaining} out of 500`);
@@ -109,9 +111,12 @@ module.exports = {
         .setDescription(`Song: ${spotifyInfo.title} by ${spotifyInfo.artists.join(', ')}`)
         .setColor(embedColor)
         .setFields(
-            {name: "Human", value: `${human}%`, inline: true}, 
-            {name: "Processed AI", value: `${processed_ai}%`, inline: true}, 
-            {name: "Pure AI", value: `${pure_ai}%`, inline: true},
+            {name: "Spectral Human", value: `${spectral_probabilities.human}%`, inline: true}, 
+            {name: "Spectral Processed AI", value: `${spectral_probabilities.processed_ai}%`, inline: true}, 
+            {name: "Spectral Pure AI", value: `${spectral_probabilities.pure_ai}%`, inline: true},
+            {name: "Temporal Human", value: `${temporal_probabilities.human}%`, inline: true}, 
+            {name: "Temporal Processed AI", value: `${temporal_probabilities.processed_ai}%`, inline: true}, 
+            {name: "Temporal Pure AI", value: `${temporal_probabilities.pure_ai}%`, inline: true},
             {name: "Image AI Analysis", value: `${sightengineAIProbabilitypercent}%`, inline: false})
         .setTimestamp();
 
