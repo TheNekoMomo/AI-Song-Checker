@@ -137,17 +137,12 @@ module.exports = {
       {
         const err = /** @type {any} */ (error);
 
-        const status = err?.response?.status;
-        const apiMessage = err?.response?.data?.error || err?.response?.data?.message;
+        const SHError = err?.error;
 
-        console.error("[check-song] error:", err?.response?.data ?? err);
+        console.error("[check-song] error:", error);
 
-        if (status && apiMessage) {
-          return interaction.editReply(`error (${status}): ${apiMessage}\nTry again in a moment.`);
-        }
-
-        if (status) {
-          return interaction.editReply(`error (${status}). Try again in a moment.`);
+        if (SHError) {
+          return interaction.editReply(`error (${SHError}): ${err?.details}\nTry again in a moment.`);
         }
 
         return interaction.editReply("An error occurred while checking the song. Try again in a moment.");
