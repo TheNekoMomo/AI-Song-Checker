@@ -6,7 +6,7 @@ const { getAverageColor } = require("fast-average-color-node");
 const { performance } = require('perf_hooks');
 
 const { parseSpotifyTrackURL, getSpotifyTrackInfo } = require('../../utils/spotifyHelper');
-const { shlabsAPICall, SightengineAPICall } = require('../../utils/aiAPI');
+const { shlabsSpotifyAPICall, SightengineAPICall } = require('../../utils/aiAPI');
 
 const GuildConfig = require("../../models/GuildConfig");
 
@@ -54,7 +54,7 @@ module.exports = {
       try 
       {
         // Make the SHLabs Promise with the logic for measuring its duration
-        const shlabsPromise = shlabsAPICall(spotifyResult.trackId).then(res => ({ res, took: performance.now() - shlabsStart }));
+        const shlabsPromise = shlabsSpotifyAPICall(spotifyResult.trackId).then(res => ({ res, took: performance.now() - shlabsStart }));
 
         // Make the spotify Promise
         const spotifyPromise = getSpotifyTrackInfo(spotifyResult.trackId);

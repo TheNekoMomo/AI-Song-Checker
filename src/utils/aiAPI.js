@@ -4,7 +4,7 @@ const axios = require('axios');
 /**
  * @param {string} trackId
  */
-async function  shlabsAPICall(trackId){
+async function  shlabsSpotifyAPICall(trackId){
   // Make a POST request to the SH Labs API with the Spotify track ID
     const result = await axios.post(
         'https://shlabs.music/api/v1/detect',
@@ -43,6 +43,6 @@ async function SightengineAPICall(imageURL){
 }
 
 module.exports = {
-    shlabsAPICall,
+    shlabsSpotifyAPICall,
     SightengineAPICall
 }
