@@ -58,22 +58,14 @@ module.exports = {
 
         // Make the spotify Promise
         const spotifyPromise = getSpotifyTrackInfo(spotifyResult.trackId);
-        // Make the Sightengine Promise, which depends on the Spotify Promise to get the album art URL
-        const sightenginePromise = spotifyPromise.then(info => {
-          if (info && info.image) {
-            return SightengineAPICall(info.image).then(res => ({ res, image: info.image }));
-          }
-          return null;
-        });
 
         const shlabsStart = performance.now();
 
         // Start DB query, SHLabs API Call, Spotify API call, and Sightengine API call in parallel
-        const [guildConfig, shlabsWrapped, spotifyInfo, sightengineWrapped] = await Promise.all([
+        const [guildConfig, shlabsWrapped, spotifyInfo] = await Promise.all([
           GuildConfig.findOne({ guildId: interaction.guildId }),
           shlabsPromise,
-          spotifyPromise,
-          sightenginePromise
+          spotifyPromise
         ]);
 
         // Check if the interaction is in a guild and if the channel is allowed
@@ -96,7 +88,6 @@ module.exports = {
         // Extract relevant data from the SH Labs API response
         const {result, usage} = shlabsWrapped.res;
         const {spectral_probabilities, temporal_probabilities} = result;
-        const sightengineAIProbabilitypercent = sightengineWrapped?.res?.type?.ai_generated * 100;
 
         // Log usage information to the console
         console.log(`Daily usage left for SH Labs API: ${usage.daily_remaining} out of 500`);
@@ -114,8 +105,7 @@ module.exports = {
             {name: "Spectral Pure AI", value: `${spectral_probabilities.pure_ai}%`, inline: true},
             {name: "Temporal Human", value: `${temporal_probabilities.human}%`, inline: true}, 
             {name: "Temporal Processed AI", value: `${temporal_probabilities.processed_ai}%`, inline: true}, 
-            {name: "Temporal Pure AI", value: `${temporal_probabilities.pure_ai}%`, inline: true},
-            {name: "Image AI Analysis", value: `${sightengineAIProbabilitypercent}%`, inline: false})
+            {name: "Temporal Pure AI", value: `${temporal_probabilities.pure_ai}%`, inline: true})
         .setTimestamp();
 
         if(spotifyInfo.image){

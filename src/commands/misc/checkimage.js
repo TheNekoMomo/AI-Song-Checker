@@ -21,6 +21,7 @@ module.exports = {
             type: ApplicationCommandOptionType.String,
         },
     ],
+    deleted: true, // hide command till work out the API issues
     
     /**
    * @param {import('discord.js').Client} client
