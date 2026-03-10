@@ -125,17 +125,16 @@ module.exports = {
       } 
       catch (error) 
       {
-        const err = /** @type {any} */ (error);
-
-        const SHError = err?.error;
+        const axiosError = /** @type {any} */ (error);
+        const statusCode = axiosError?.response?.status;
 
         console.error("[check-song] error:", error);
 
-        if (SHError) {
-          return interaction.editReply(`error (${SHError}): ${err?.details}\nTry again in a moment.`);
+        if(statusCode === 502 || statusCode === 503 || statusCode === 504){
+          return interaction.editReply("The AI checking service timed out. Please try again in a moment.");
         }
 
-        return interaction.editReply("An error occurred while checking the song. Try again in a moment.");
+        return interaction.editReply("Something went wrong while checking that song. Please try again.");
       }
     }
 }

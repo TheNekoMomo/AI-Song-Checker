@@ -2,22 +2,56 @@ require('dotenv').config();
 const axios = require('axios');
 
 /**
- * @param {string} trackId
+ * @param {number} milliseconds
  */
-async function  shlabsSpotifyAPICall(trackId){
-  // Make a POST request to the SH Labs API with the Spotify track ID
-    const result = await axios.post(
+function sleep(milliseconds) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
+/**
+ * @param {string} trackId
+ * @returns {Promise<any>}
+ */
+async function shlabsSpotifyAPICall(trackId) {
+  const requestBody = { spotifyTrackId: trackId };
+  const requestConfig = {
+    timeout: 20000,
+    headers: {
+      'X-API-Key': process.env.SH_LABS_APIKEY,
+      'Content-Type': 'application/json',
+    },
+  };
+
+  let lastError;
+
+  for (let attemptNumber = 1; attemptNumber <= 2; attemptNumber++) {
+    try {
+      const response = await axios.post(
         'https://shlabs.music/api/v1/detect',
-        { spotifyTrackId: trackId },
-        {
-            headers: {
-                'X-API-Key': process.env.SH_LABS_APIKEY,
-                'Content-Type': 'application/json'
-            }
-        }
-    )
-    // Return the data from the API response
-    return result.data;
+        requestBody,
+        requestConfig
+      );
+
+      return response.data;
+    } catch (error) {
+      const axiosError = /** @type {any} */ (error);
+      const statusCode = axiosError?.response?.status;
+
+      lastError = error;
+
+      const shouldRetry =
+        attemptNumber < 2 &&
+        (statusCode === 502 || statusCode === 503 || statusCode === 504);
+
+      if (!shouldRetry) {
+        throw error;
+      }
+
+      await sleep(1500);
+    }
+  }
+
+  throw lastError;
 }
 
 /**
