@@ -15,7 +15,7 @@ function sleep(milliseconds) {
 async function shlabsSpotifyAPICall(trackId) {
   const requestBody = { spotifyTrackId: trackId };
   const requestConfig = {
-    timeout: 40000,
+    timeout: 60000,
     headers: {
       'X-API-Key': process.env.SH_LABS_APIKEY,
       'Content-Type': 'application/json',
