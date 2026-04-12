@@ -1,10 +1,11 @@
-require('dotenv').config();
-const { connectDB } = require("./db");
 const { Client, IntentsBitField } = require('discord.js');
-const eventHandler = require('./handlers/eventHandler');
+require('dotenv').config();
 
-const client = new Client({
-    intents: [
+const { connectDB } = require("./db");
+const eventHandler = require('./handlers/eventHandler');
+const getLocalIPs = require('./utils/GetLocalIP');
+
+const client = new Client({intents: [
         IntentsBitField.Flags.Guilds,
         IntentsBitField.Flags.GuildMessages
     ]
@@ -14,6 +15,7 @@ eventHandler(client);
 
 (async () => {
     try {
+        console.log('Local IPs:', getLocalIPs());
         await connectDB(process.env.MONGODB_URI);
         await client.login(process.env.TOKEN);
     }
