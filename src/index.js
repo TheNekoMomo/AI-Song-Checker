@@ -20,9 +20,6 @@ eventHandler(client);
         console.log('Public IP:', await getPublicIP());
         await connectDB(process.env.MONGODB_URI);
         await client.login(process.env.TOKEN);
-
-        const file = await DownloadYoutubeAudio('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
-        console.log(file);
     }
     catch (error) {
         console.error('Startup failed:', error);
