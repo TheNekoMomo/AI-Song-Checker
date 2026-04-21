@@ -31,9 +31,8 @@ function ValidateYoutubeURL(videoURL){
 
   const isShort = url.pathname.startsWith('/shorts/');
   const isLive = url.pathname.startsWith('/live/');
-  const isYoutuBe = host.includes('youtu.be') && url.pathname.length > 1;
 
-  if (isShort || isLive || isYoutuBe) {
+  if (isShort || isLive) {
     return { ok: false, reason: 'Only supports YouTube videos.' }
   }
 
