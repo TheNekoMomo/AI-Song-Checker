@@ -3,7 +3,7 @@ const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 const fs = require('fs/promises');
 const path = require('path');
 const crypto = require('crypto');
-require('dotenv').config();
+
 const accountId = process.env.ACCOUNT_ID;
 const accessKeyId = process.env.ACCESS_KEY_ID;
 const secretAcessKey = process.env.SECRET_ACCESS_KEY;

@@ -1,8 +1,6 @@
 const { Collection } = require('discord.js');
 const fs = require('node:fs');
 const path = require('node:path');
-// Load discord token and other necessary IDs from .env file
-require('dotenv').config();
 // local marker to know if deploying commands locally or globally, since global commands can take up to an hour to update
 const LOCAL_MARKER = '.local_marker';
 
@@ -53,14 +51,54 @@ async function getApplicationCommands(client, guildId) {
 	return applicationCommands;
 }
 
+function normalizeOption(opt) {
+	const normalized = {
+		type: opt.type,
+		name: opt.name,
+		description: opt.description,
+		required: opt.required ?? false,
+	};
+
+	// Recursively normalize nested options (for sub-commands and sub-command groups)
+	if (opt.options && opt.options.length > 0) {
+		normalized.options = opt.options.map(nestedOpt => normalizeOption(nestedOpt));
+	}
+
+	// Include min/max values if they exist (for number/integer types)
+	if (opt.min_value !== undefined) normalized.min_value = opt.min_value;
+	if (opt.max_value !== undefined) normalized.max_value = opt.max_value;
+
+	// Include min/max length if they exist (for string types)
+	if (opt.min_length !== undefined) normalized.min_length = opt.min_length;
+	if (opt.max_length !== undefined) normalized.max_length = opt.max_length;
+
+	// Include choices if they exist
+	if (opt.choices && opt.choices.length > 0) {
+		normalized.choices = opt.choices.map(choice => ({
+			name: choice.name,
+			value: choice.value,
+		}));
+	}
+
+	return normalized;
+}
+
 function normalizeCommand(command) {
+	// Normalize permissions - convert BigInt to string for comparison
+	let permissions = command.defaultMemberPermissions ?? command.default_member_permissions;
+	
+	// Convert BigInt to string so it can be JSON serialized
+	if (typeof permissions === 'bigint') {
+		permissions = permissions.toString();
+	}
+	
 	return {
-		name: command.name,
-		description: command.description,
-		options: command.options ?? [],
-		default_member_permissions: command.default_member_permissions ?? null,
-		dm_permission: command.dm_permission ?? true,
-		nsfw: command.nsfw ?? false,
+        name: command.name,
+        description: command.description,
+        options: command.options?.map(opt => normalizeOption(opt)) ?? [],
+        dm_permission: command.dm_permission ?? true,
+        nsfw: command.nsfw ?? false,
+		default_member_permissions: permissions,
 	};
 }
 function isLocal() {
@@ -85,7 +123,7 @@ async function DeployCommands(client) {
 		if(applicationCommand) {
 
 			const normalizedCommand = normalizeCommand(command.data.toJSON());
-			const normalizedApplicationCommand = normalizeCommand(applicationCommand);
+			const normalizedApplicationCommand = normalizeCommand(applicationCommand.toJSON());
 
 			// check if the command is mark for deletion
 			if (command.remove) {

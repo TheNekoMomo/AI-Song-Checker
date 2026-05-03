@@ -1,5 +1,5 @@
 const axios = require('axios');
-require('dotenv').config();
+
 const shLabsAPIKey = process.env.SH_LABS_APIKEY;
 
 async function SubmitHubAPI(requestBody) {
