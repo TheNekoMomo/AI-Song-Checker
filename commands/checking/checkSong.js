@@ -96,10 +96,6 @@ module.exports = {
             console.log(response);
             return await interaction.editReply({content: `Error: ${response.status || 'Unknown'}. Sorry, There was a problem.\nTry again later.`});
         }
-        if (response.status !== 200 || !response.data || !response.data.result) {
-            console.log(response);
-            return await interaction.editReply({content: `Error: ${response.status || 'Unknown'}. Sorry, There was a problem with the response from the AI detection service.\nTry again later.`});
-        }
         const {result, usage} = response.data;
         // Log the usage for submithub
         console.log(`Daily usage left for SH Labs API: ${usage.daily_remaining} out of 500`);
