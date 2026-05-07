@@ -90,7 +90,7 @@ module.exports = {
         const response = await SubmitHubAPI(shLabsRequest);
         // Check that status in case of errors
         if (response.status === 500) {
-            return await interaction.editReply({content: `Error: ${response.status || 'Unknown'} AI detection service temporarily unavailable.`});
+            return await interaction.editReply({content: `Error: ${response.status} AI detection service temporarily unavailable.`});
         }
         if (response.status !== 200 || !response) {
             if (response) console.log(response);
