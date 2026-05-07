@@ -92,8 +92,8 @@ module.exports = {
         if (response.status === 500) {
             return await interaction.editReply({content: `Error: ${response.status || 'Unknown'} AI detection service temporarily unavailable.`});
         }
-        if (response.status !== 200) {
-            console.log(response);
+        if (response.status !== 200 || !response) {
+            if (response) console.log(response);
             return await interaction.editReply({content: `Error: ${response.status || 'Unknown'}. Sorry, There was a problem.\nTry again later.`});
         }
         const {result, usage} = response.data;
