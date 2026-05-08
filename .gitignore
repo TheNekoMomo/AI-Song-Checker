@@ -140,4 +140,3 @@ dist
 
 # Dont want to push staff in here
 bin/
-whiteList.json

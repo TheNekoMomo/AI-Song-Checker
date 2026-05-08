@@ -1,12 +1,12 @@
 {
   "name": "ai-checker",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "",
   "main": "index.js",
   "scripts": {},
   "keywords": [],
   "author": "momo",
-  "license": "ISC",
+  "license": "MIT",
   "type": "commonjs",
   "imports": {
     "#db/*": "./mongoose/*.js",

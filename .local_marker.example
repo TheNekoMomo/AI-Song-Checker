@@ -1,0 +1,9 @@
+# This file indicates that the bot is running in local development mode
+# Copy this file to the root directory as ".local_marker" (without the .example extension)
+# When this file exists, the bot will:
+# - Deploy commands to a specific guild (specified by GUILD_ID in .env)
+# - Enable local-only debugging features
+#
+# To use:
+# 1. Create a file named ".local_marker" in the root directory (leave it empty)
+# 2. The bot will automatically detect it and enable local development mode
